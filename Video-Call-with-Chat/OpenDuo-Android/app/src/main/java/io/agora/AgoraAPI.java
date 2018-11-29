@@ -5,8 +5,7 @@ import android.content.Context;
 
 public final class AgoraAPI extends AgoraAPIOnlySignal {
 
-    private AgoraAPI() {
-    }
+    private AgoraAPI() {}
 
     public static AgoraAPIOnlySignal getInstance(Context context, String appId) {
         return AgoraAPIOnlySignal.getInstance(context, appId);

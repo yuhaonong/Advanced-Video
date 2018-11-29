@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "onClickLogin");
         account = textAccountName.getText().toString().trim();
 
-        AGApplication.the().getmAgoraAPI().login(appId, account, "_no_need_token", 0, "");
+        AGApplication.the().getmAgoraAPI().login(appId, account, "", 0, "");
     }
 
     private void addCallback() {
@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLogout(int i) {
                 Log.i(TAG, "onLogout  i = " + i);
-
             }
 
             @Override
