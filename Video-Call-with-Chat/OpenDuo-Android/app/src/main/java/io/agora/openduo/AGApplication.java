@@ -3,7 +3,6 @@ package io.agora.openduo;
 import android.app.Application;
 import android.util.Log;
 
-import io.agora.AgoraAPIOnlySignal;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.RtcEngine;
 
@@ -12,7 +11,7 @@ public class AGApplication extends Application {
     private final String TAG = AGApplication.class.getSimpleName();
 
     private static AGApplication mInstance;
-    private AgoraAPIOnlySignal m_agoraAPI;
+//    private AgoraAPIOnlySignal m_agoraAPI;
     private RtcEngine mRtcEngine;
 
     public static AGApplication the() {
@@ -70,15 +69,15 @@ public class AGApplication extends Application {
         return mRtcEngine;
     }
 
-    public AgoraAPIOnlySignal getmAgoraAPI() {
-        return m_agoraAPI;
-    }
+//    public AgoraAPIOnlySignal getmAgoraAPI() {
+//        return m_agoraAPI;
+//    }
 
     private void setupAgoraEngine() {
         String appID = getString(R.string.agora_app_id);
 
         try {
-            m_agoraAPI = AgoraAPIOnlySignal.getInstance(this, appID);
+//            m_agoraAPI = AgoraAPIOnlySignal.getInstance(this, appID);
             mRtcEngine = RtcEngine.create(getBaseContext(), appID, mRtcEventHandler);
             Log.i(TAG, "setupAgoraEngine mRtcEngine :" + mRtcEngine);
         } catch (Exception e) {
