@@ -1,0 +1,7 @@
+../libs/agora-rtc-sdk.jar
+main/jniLibs/arm64-v8a/libagora-crypto.so
+main/jniLibs/arm64-v8a/libagora-rtc-sdk-jni.so
+main/jniLibs/armeabi-v7a/libagora-crypto.so
+main/jniLibs/armeabi-v7a/libagora-rtc-sdk-jni.so
+main/jniLibs/x86/libagora-crypto.so
+main/jniLibs/x86/libagora-rtc-sdk-jni.so
