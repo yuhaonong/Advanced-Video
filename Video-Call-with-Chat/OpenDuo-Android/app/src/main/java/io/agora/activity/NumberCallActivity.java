@@ -12,7 +12,6 @@ import android.widget.Toast;
 
 import java.util.Locale;
 
-import io.agora.openduo.AGApplication;
 import io.agora.openduo.R;
 import io.agora.utils.Constant;
 

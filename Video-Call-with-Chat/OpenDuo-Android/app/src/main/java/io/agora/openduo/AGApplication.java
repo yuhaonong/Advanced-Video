@@ -5,13 +5,16 @@ import android.util.Log;
 
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.RtcEngine;
+import io.agora.rtm.RtmClient;
+import io.agora.rtm.RtmClientListener;
+import io.agora.rtm.RtmMessage;
 
 
 public class AGApplication extends Application {
     private final String TAG = AGApplication.class.getSimpleName();
 
     private static AGApplication mInstance;
-//    private AgoraAPIOnlySignal m_agoraAPI;
+    private RtmClient mRtmClient;
     private RtcEngine mRtcEngine;
 
     public static AGApplication the() {
@@ -58,6 +61,18 @@ public class AGApplication extends Application {
 
     };
 
+    private final RtmClientListener mRtmClientListener = new RtmClientListener() {
+        @Override
+        public void onConnectionStateChanged(int newState) {
+            Log.i(TAG, "onConnectionStateChanged new state:" + newState);
+        }
+
+        @Override
+        public void onMessageReceived(RtmMessage rtmMessage, String s) {
+
+        }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -69,15 +84,15 @@ public class AGApplication extends Application {
         return mRtcEngine;
     }
 
-//    public AgoraAPIOnlySignal getmAgoraAPI() {
-//        return m_agoraAPI;
-//    }
+    public RtmClient getRtmClient() {
+        return mRtmClient;
+    }
 
     private void setupAgoraEngine() {
         String appID = getString(R.string.agora_app_id);
 
         try {
-//            m_agoraAPI = AgoraAPIOnlySignal.getInstance(this, appID);
+            mRtmClient = RtmClient.createInstance(this, appID, mRtmClientListener);
             mRtcEngine = RtcEngine.create(getBaseContext(), appID, mRtcEventHandler);
             Log.i(TAG, "setupAgoraEngine mRtcEngine :" + mRtcEngine);
         } catch (Exception e) {
