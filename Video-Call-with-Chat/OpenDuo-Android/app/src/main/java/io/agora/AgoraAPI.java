@@ -72,5 +72,15 @@ public final class AgoraAPI extends AgoraAPIOnlySignal {
         public void onInviteFailed(String channelID, String account, int uid, int ecode, String extra) {
 
         }
+
+        @Override
+        public void onReconnecting(int nretry) {
+
+        }
+
+        @Override
+        public void onReconnected(int fd) {
+
+        }
     }
 }

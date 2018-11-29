@@ -14,7 +14,6 @@ import java.util.Locale;
 
 import io.agora.AgoraAPI;
 import io.agora.AgoraAPIOnlySignal;
-import io.agora.IAgoraAPI;
 import io.agora.openduo.AGApplication;
 import io.agora.openduo.R;
 import io.agora.utils.Constant;
@@ -26,34 +25,36 @@ import io.agora.utils.Constant;
 public class NumberCallActivity extends AppCompatActivity {
     private final String TAG = NumberCallActivity.class.getSimpleName();
 
+    private final int REQUEST_CODE = 0x01;
+
+    private AgoraAPIOnlySignal mAgoraAPI;
     private String mMyAccount;
     private String mSubscriber;
     private TextView mCallTitle;
     private EditText mSubscriberPhoneNumberText;
     private StringBuffer mCallNumberText = new StringBuffer("");
-
     private String channelName = "channelid";
-
-    private AgoraAPIOnlySignal mAgoraAPI;
-    private final int REQUEST_CODE = 0x01;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_number);
 
-        initAgoraEngineAndJoinChannel();
-
-        initUI();
-    }
-
-    private void initUI() {
         Intent intent = getIntent();
-        mMyAccount = intent.getStringExtra("account");
-
+        if (intent != null) {
+            mMyAccount = intent.getStringExtra("account");
+        }
         mCallTitle = (TextView) findViewById(R.id.meet_title);
         mCallTitle.setText(String.format(Locale.US, "Your account ID is %s", mMyAccount));
         mSubscriberPhoneNumberText = (EditText) findViewById(R.id.call_number_edit);
+
+        mAgoraAPI = AGApplication.the().getmAgoraAPI();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setCallback();
     }
 
     public void CallClickInit(View v) {
@@ -67,7 +68,6 @@ public class NumberCallActivity extends AppCompatActivity {
                 break;
 
             case R.id.call_number_call: // number layout call out button
-
                 if (!Constant.isFastlyClick()) {
                     if (mSubscriberPhoneNumberText.getText().toString().equals(mMyAccount)) {
                         Toast.makeText(this, "could not call yourself", Toast.LENGTH_SHORT).show();
@@ -79,13 +79,10 @@ public class NumberCallActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(this, "fast click", Toast.LENGTH_SHORT).show();
                 }
-
                 Log.i(TAG, "call number call init");
-
                 break;
         }
     }
-
 
     /**
      * number click button
@@ -98,7 +95,7 @@ public class NumberCallActivity extends AppCompatActivity {
         mSubscriberPhoneNumberText.setSelection(mSubscriberPhoneNumberText.getText().toString().length());
     }
 
-    private void addCallback() {
+    private void setCallback() {
         if (mAgoraAPI == null) {
             return;
         }
@@ -187,7 +184,6 @@ public class NumberCallActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
                         if (status.equals("1")) {
                             channelName = mMyAccount + mSubscriber;
                             mAgoraAPI.channelInviteUser(channelName, mSubscriberPhoneNumberText.getText().toString(), 0);
@@ -199,12 +195,6 @@ public class NumberCallActivity extends AppCompatActivity {
             }
 
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        addCallback();
     }
 
     @Override
@@ -224,10 +214,6 @@ public class NumberCallActivity extends AppCompatActivity {
                 finish();
             }
         }
-    }
-
-    private void initAgoraEngineAndJoinChannel() {
-        mAgoraAPI = AGApplication.the().getmAgoraAPI();
     }
 
 }

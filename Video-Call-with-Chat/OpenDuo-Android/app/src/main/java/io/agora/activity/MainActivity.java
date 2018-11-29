@@ -8,12 +8,13 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import io.agora.AgoraAPI;
-import io.agora.IAgoraAPI;
 import io.agora.openduo.AGApplication;
 import io.agora.openduo.R;
 import io.agora.rtc.RtcEngine;
+import io.agora.rtm.RtmStatusCode;
 
 /**
  * @author Luke Yu
@@ -30,11 +31,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
 
         appId = getString(R.string.agora_app_id);
-
         textAccountName = (EditText) findViewById(R.id.account_name);
         textAccountName.addTextChangedListener(new TextWatcher() {
             @Override
@@ -55,16 +54,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setCallback();
+    }
+
     // login signaling
     public void onClickLogin(View v) {
         Log.i(TAG, "onClickLogin");
         account = textAccountName.getText().toString().trim();
-
         AGApplication.the().getmAgoraAPI().login(appId, account, "", 0, "");
     }
 
-    private void addCallback() {
-        Log.i(TAG, "addCallback enter.");
+    private void setCallback() {
+        Log.i(TAG, "setCallback enter.");
         AGApplication.the().getmAgoraAPI().callbackSet(new AgoraAPI.CallBack() {
 
             @Override
@@ -92,19 +96,15 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                        if (i == IAgoraAPI.ECODE_LOGIN_E_NET) {
-//                            Toast.makeText(MainActivity.this, "Login Failed for the network is not available", Toast.LENGTH_SHORT).show();
-//                        }
+                        if (i == RtmStatusCode.LoginError.LOGIN_ERR_REJECTED) {
+                            Toast.makeText(MainActivity.this, "Login rejected", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Login error: " + i, Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        addCallback();
     }
 
     @Override
