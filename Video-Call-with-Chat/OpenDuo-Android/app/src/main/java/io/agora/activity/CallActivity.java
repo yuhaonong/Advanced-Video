@@ -12,10 +12,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.*;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Locale;
 
+import io.agora.AgoraAPI;
+import io.agora.AgoraAPIOnlySignal;
 import io.agora.openduo.AGApplication;
 import io.agora.openduo.R;
 import io.agora.rtc.Constants;
@@ -34,7 +42,7 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
     private static final int PERMISSION_REQ_ID_CAMERA = PERMISSION_REQ_ID_RECORD_AUDIO + 1;
     private static final int PERMISSION_REQ_ID_STORAGE = PERMISSION_REQ_ID_CAMERA + 1;
 
-//    private AgoraAPIOnlySignal mAgoraAPI;
+    private AgoraAPIOnlySignal mAgoraAPI;
     private RtcEngine mRtcEngine;
 
     private String mSubscriber;
@@ -177,7 +185,7 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
             case R.id.call_in_pickup:
                 mIsCallInRefuse = false;
                 joinChannel(); // Tutorial Step 4
-//                mAgoraAPI.channelInviteAccept(channelName, mSubscriber, 0, null);
+                mAgoraAPI.channelInviteAccept(channelName, mSubscriber, 0, null);
                 mLayoutCallIn.setVisibility(View.GONE);
                 mCallHangupBtn.setVisibility(View.VISIBLE);
                 mCallTitle.setVisibility(View.GONE);
@@ -194,15 +202,15 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
     }
 
     private void callOutHangup() {
-//        if (mAgoraAPI != null)
-//            mAgoraAPI.channelInviteEnd(channelName, mSubscriber, 0);
+        if (mAgoraAPI != null)
+            mAgoraAPI.channelInviteEnd(channelName, mSubscriber, 0);
     }
 
     private void callInRefuse() {
         // "status": 0 // Default
         // "status": 1 // Busy
-//        if (mAgoraAPI != null)
-//            mAgoraAPI.channelInviteRefuse(channelName, mSubscriber, 0, "{\"status\":0}");
+        if (mAgoraAPI != null)
+            mAgoraAPI.channelInviteRefuse(channelName, mSubscriber, 0, "{\"status\":0}");
 
         onEncCallClicked();
     }
@@ -212,19 +220,19 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
         Log.i(TAG, "onJoinChannelSuccess channel: " + channel + " uid: " + uid);
     }
 
-//    private void addSignalingCallback() {
-//        if (mAgoraAPI == null) {
-//            return;
-//        }
-//
-//        mAgoraAPI.callbackSet(new AgoraAPI.CallBack() {
-//
-//            @Override
-//            public void onLogout(final int i) {
-//                Log.i(TAG, "onLogout  i = " + i);
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
+    private void addSignalingCallback() {
+        if (mAgoraAPI == null) {
+            return;
+        }
+
+        mAgoraAPI.callbackSet(new AgoraAPI.CallBack() {
+
+            @Override
+            public void onLogout(final int i) {
+                Log.i(TAG, "onLogout  i = " + i);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
 //                        if (i == IAgoraAPI.ECODE_LOGOUT_E_KICKED) { // other login the account
 //                            Toast.makeText(CallActivity.this, "Other login account ,you are logout.", Toast.LENGTH_SHORT).show();
 //
@@ -232,139 +240,139 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
 //                            Toast.makeText(CallActivity.this, "Logout for Network can not be.", Toast.LENGTH_SHORT).show();
 //                            finish();
 //                        }
-//                        Intent intent = new Intent();
-//                        intent.putExtra("result", "finish");
-//                        setResult(RESULT_OK, intent);
-//                        finish();
-//                    }
-//                });
-//
-//            }
-//
-//            /**
-//             * call in receiver
-//             */
-//            @Override
-//            public void onInviteReceived(final String channelID, final String account, final int uid, String s2) {
-//                Log.i(TAG, "onInviteReceived  channelID = " + channelID + "  account = " + account);
-//
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-////                      "status": 0 // Default
-////                      "status": 1 // Busy
-//                        mAgoraAPI.channelInviteRefuse(channelID, account, uid, "{\"status\":1}");
-//
-//                    }
-//                });
-//            }
-//
-//            /**
-//             * call out other ,local receiver
-//             */
-//            @Override
-//            public void onInviteReceivedByPeer(final String channelID, String account, int uid) {
-//                Log.i(TAG, "onInviteReceivedByPeer  channelID = " + channelID + "  account = " + account);
-//
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        mCallHangupBtn.setVisibility(View.VISIBLE);
-//
-//                        mCallTitle.setText(String.format(Locale.US, "%s is being called ...", mSubscriber));
-//                    }
-//                });
-//            }
-//
-//            /**
-//             * other receiver call accept callback
-//             * @param channelID
-//             * @param account
-//             * @param uid
-//             * @param s2
-//             */
-//            @Override
-//            public void onInviteAcceptedByPeer(String channelID, String account, int uid, String s2) {
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if (mPlayer != null && mPlayer.isPlaying()) {
-//                            mPlayer.stop();
-//                        }
-//                        mCallTitle.setVisibility(View.GONE);
-//                    }
-//                });
-//
-//            }
-//
-//            /**
-//             * other receiver call refuse callback
-//             * @param channelID
-//             * @param account
-//             * @param uid
-//             * @param s2
-//             */
-//
-//            @Override
-//            public void onInviteRefusedByPeer(String channelID, final String account, int uid, final String s2) {
-//                Log.i(TAG, "onInviteRefusedByPeer channelID = " + channelID + " account = " + account + " s2 = " + s2);
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if (mPlayer != null && mPlayer.isPlaying()) {
-//                            mPlayer.stop();
-//                        }
-//                        if (s2.contains("status") && s2.contains("1")) {
-//                            Toast.makeText(CallActivity.this, account + " reject your call for busy", Toast.LENGTH_SHORT).show();
-//                        } else {
-//                            Toast.makeText(CallActivity.this, account + " reject your call", Toast.LENGTH_SHORT).show();
-//                        }
-//
-//                        onEncCallClicked();
-//                    }
-//                });
-//            }
-//
-//
-//            /**
-//             * end call remote receiver callback
-//             * @param channelID
-//             * @param account
-//             * @param uid
-//             * @param s2
-//             */
-//            @Override
-//            public void onInviteEndByPeer(final String channelID, String account, int uid, String s2) {
-//                Log.i(TAG, "onInviteEndByPeer channelID = " + channelID + " account = " + account);
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if (channelID.equals(channelName)) {
-//                            onEncCallClicked();
-//                        }
-//
-//                    }
-//                });
-//            }
-//
-//            /**
-//             * end call local receiver callback
-//             * @param channelID
-//             * @param account
-//             * @param uid
-//             */
-//            @Override
-//            public void onInviteEndByMyself(String channelID, String account, int uid) {
-//                Log.i(TAG, "onInviteEndByMyself channelID = " + channelID + "  account = " + account);
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        onEncCallClicked();
-//                    }
-//                });
-//            }
-//        });
-//    }
+                        Intent intent = new Intent();
+                        intent.putExtra("result", "finish");
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    }
+                });
+
+            }
+
+            /**
+             * call in receiver
+             */
+            @Override
+            public void onInviteReceived(final String channelID, final String account, final int uid, String s2) {
+                Log.i(TAG, "onInviteReceived  channelID = " + channelID + "  account = " + account);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+//                      "status": 0 // Default
+//                      "status": 1 // Busy
+                        mAgoraAPI.channelInviteRefuse(channelID, account, uid, "{\"status\":1}");
+
+                    }
+                });
+            }
+
+            /**
+             * call out other ,local receiver
+             */
+            @Override
+            public void onInviteReceivedByPeer(final String channelID, String account, int uid) {
+                Log.i(TAG, "onInviteReceivedByPeer  channelID = " + channelID + "  account = " + account);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mCallHangupBtn.setVisibility(View.VISIBLE);
+
+                        mCallTitle.setText(String.format(Locale.US, "%s is being called ...", mSubscriber));
+                    }
+                });
+            }
+
+            /**
+             * other receiver call accept callback
+             * @param channelID
+             * @param account
+             * @param uid
+             * @param s2
+             */
+            @Override
+            public void onInviteAcceptedByPeer(String channelID, String account, int uid, String s2) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mPlayer != null && mPlayer.isPlaying()) {
+                            mPlayer.stop();
+                        }
+                        mCallTitle.setVisibility(View.GONE);
+                    }
+                });
+
+            }
+
+            /**
+             * other receiver call refuse callback
+             * @param channelID
+             * @param account
+             * @param uid
+             * @param s2
+             */
+
+            @Override
+            public void onInviteRefusedByPeer(String channelID, final String account, int uid, final String s2) {
+                Log.i(TAG, "onInviteRefusedByPeer channelID = " + channelID + " account = " + account + " s2 = " + s2);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mPlayer != null && mPlayer.isPlaying()) {
+                            mPlayer.stop();
+                        }
+                        if (s2.contains("status") && s2.contains("1")) {
+                            Toast.makeText(CallActivity.this, account + " reject your call for busy", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(CallActivity.this, account + " reject your call", Toast.LENGTH_SHORT).show();
+                        }
+
+                        onEncCallClicked();
+                    }
+                });
+            }
+
+
+            /**
+             * end call remote receiver callback
+             * @param channelID
+             * @param account
+             * @param uid
+             * @param s2
+             */
+            @Override
+            public void onInviteEndByPeer(final String channelID, String account, int uid, String s2) {
+                Log.i(TAG, "onInviteEndByPeer channelID = " + channelID + " account = " + account);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (channelID.equals(channelName)) {
+                            onEncCallClicked();
+                        }
+
+                    }
+                });
+            }
+
+            /**
+             * end call local receiver callback
+             * @param channelID
+             * @param account
+             * @param uid
+             */
+            @Override
+            public void onInviteEndByMyself(String channelID, String account, int uid) {
+                Log.i(TAG, "onInviteEndByMyself channelID = " + channelID + "  account = " + account);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onEncCallClicked();
+                    }
+                });
+            }
+        });
+    }
 
     public final void showLongToast(final String msg) {
         this.runOnUiThread(new Runnable() {
@@ -378,7 +386,7 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
     @Override
     protected void onResume() {
         super.onResume();
-//        addSignalingCallback();
+        addSignalingCallback();
     }
 
     @Override
@@ -422,7 +430,7 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
 
     // Tutorial Step 1
     private void initializeAgoraEngine() {
-//        mAgoraAPI = AGApplication.the().getmAgoraAPI();
+        mAgoraAPI = AGApplication.the().getmAgoraAPI();
         mRtcEngine = AGApplication.the().getmRtcEngine();
         Log.i(TAG, "initializeAgoraEngine mRtcEngine :" + mRtcEngine);
         if (mRtcEngine != null) {

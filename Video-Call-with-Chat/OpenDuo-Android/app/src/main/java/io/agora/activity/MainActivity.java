@@ -8,14 +8,12 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
+import io.agora.AgoraAPI;
+import io.agora.IAgoraAPI;
 import io.agora.openduo.AGApplication;
 import io.agora.openduo.R;
 import io.agora.rtc.RtcEngine;
-import io.agora.rtm.ErrorInfo;
-import io.agora.rtm.IResultCallback;
-import io.agora.rtm.RtmStatusCode;
 
 /**
  * @author Luke Yu
@@ -57,15 +55,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // login rtm service
+    // login signaling
     public void onClickLogin(View v) {
         Log.i(TAG, "onClickLogin");
         account = textAccountName.getText().toString().trim();
 
-        AGApplication.the().getRtmClient().login(appId, account, new IResultCallback<Void>() {
+        AGApplication.the().getmAgoraAPI().login(appId, account, "_no_need_token", 0, "");
+    }
+
+    private void addCallback() {
+        Log.i(TAG, "addCallback enter.");
+        AGApplication.the().getmAgoraAPI().callbackSet(new AgoraAPI.CallBack() {
+
             @Override
-            public void onSuccess(Void i) {
-                Log.i(TAG, "login success");
+            public void onLoginSuccess() {
+                Log.i(TAG, "onLoginSuccess");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -73,22 +77,25 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra("uid", uid);
                         intent.putExtra("account", account);
                         startActivity(intent);
-
                     }
                 });
             }
 
             @Override
-            public void onFailure(ErrorInfo errorInfo) {
-                final int errorCode = errorInfo.getErrorCode();
-                Log.i(TAG, "login failure: " + errorCode);
+            public void onLogout(int i) {
+                Log.i(TAG, "onLogout  i = " + i);
+
+            }
+
+            @Override
+            public void onLoginFailed(final int i) {
+                Log.i(TAG, "onLoginFailed " + i);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (errorCode == RtmStatusCode.LoginError.LOGIN_ERR_REJECTED) {
-                            Toast.makeText(MainActivity.this,"login rejected",
-                                    Toast.LENGTH_SHORT).show();
-                        }
+//                        if (i == IAgoraAPI.ECODE_LOGIN_E_NET) {
+//                            Toast.makeText(MainActivity.this, "Login Failed for the network is not available", Toast.LENGTH_SHORT).show();
+//                        }
                     }
                 });
             }
@@ -96,10 +103,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        addCallback();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy");
         RtcEngine.destroy();
-        AGApplication.the().getRtmClient().destroy();
     }
 }
