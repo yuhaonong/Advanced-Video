@@ -165,14 +165,6 @@ public class NumberCallActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        Log.i(TAG, "onDestroy");
-        mAgoraAPI.logout();
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.i(TAG, "onActivityResult requestCode: " + requestCode + " resultCode: " + resultCode);

@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private String appId;
     private int uid;
     private String account;
+    private boolean isLogin = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         setCallback();
+        if (isLogin) {
+            AGApplication.the().getmAgoraAPI().logout();
+        }
     }
 
     // login signaling
@@ -77,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        isLogin = true;
                         Intent intent = new Intent(MainActivity.this, NumberCallActivity.class);
                         intent.putExtra("uid", uid);
                         intent.putExtra("account", account);
@@ -88,6 +93,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLogout(int i) {
                 Log.i(TAG, "onLogout  i = " + i);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "onLogout", Toast.LENGTH_SHORT).show();
+                        isLogin = false;
+                    }
+                });
             }
 
             @Override
@@ -111,6 +123,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy");
+        if (isLogin) {
+            AGApplication.the().getmAgoraAPI().logout();
+            isLogin = false;
+        }
         RtcEngine.destroy();
     }
 }

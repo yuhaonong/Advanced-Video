@@ -164,7 +164,7 @@ public interface IAgoraAPI {
          * @param channelID Channel name
          * @param account User ID of the callee defined by the client.
          * @param uid N/A
-         * @param ecode
+         * @param ecode Refer to {@link io.agora.rtm.RtmStatusCode.PeerMessageState}
          * @param extra N/A
          */
         void onInviteFailed(String channelID, String account, int uid, int ecode,  String extra);
@@ -182,7 +182,7 @@ public interface IAgoraAPI {
         void onReconnected(int fd);
 
         /**
-         * Triggered when connection is aborted somehow (maybe logged in another place).
+         * Triggered when connection is aborted somehow (maybe logged in another device).
          * To re-login, {@link IAgoraAPI#logout} method shall be called, followed by the
          * {@link IAgoraAPI#logout} method call.
          */
