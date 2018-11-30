@@ -23,13 +23,13 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
     private static final String SIG_CHANNEL_INVITE_END = SIGNAL_PREFIX + "CHANNEL_INVITE_END";
     private static final String SIG_CHANNEL_INVITE_USER2 = SIGNAL_PREFIX + "CHANNEL_INVITE_USER2";
 
-    private static final String SIG_ARG_DIVIDER = ":";
+    private static final String SIG_ARG_DELIMITER = ":";
 
     private static AgoraAPIOnlySignal sInstance = null;
 
     private RtmClient mRtmClient;
     private ICallBack mCallback;
-    private Object mLock = new Object();
+    private final Object mLock = new Object();
 
     private RtmClientListener mRtmClientListener = new RtmClientListener() {
         @Override
@@ -63,7 +63,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
                 return;
             }
             if (text.startsWith(SIGNAL_PREFIX)) {
-                String[] array = text.split(SIG_ARG_DIVIDER);
+                String[] array = text.split(SIG_ARG_DELIMITER);
                 String signal = array[0];
                 String arg1 = array.length > 1 ? array[1] : "";
                 handleSignal(peerId, signal, arg1);
@@ -133,9 +133,10 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
             return;
         }
 
-        mRtmClient.logout(new IResultCallback() {
+        mRtmClient.logout(new IResultCallback<Void>() {
+
             @Override
-            public void onSuccess(Object o) {
+            public void onSuccess(Void responseInfo) {
                 synchronized (mLock) {
                     if (mCallback != null) {
                         mCallback.onLogout(RtmStatusCode.LogoutError.LOGOUT_ERR_OK);
@@ -157,7 +158,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
 
     @Override
     public void queryUserStatus(final String account) {
-        mRtmClient.sendMessageToPeer(account, createSignal(SIG_QUERY_USER_STATUS),
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_QUERY_USER_STATUS, null),
                 new IStateListener() {
             @Override
             public void onStateChanged(int newState) {
@@ -173,7 +174,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
 
     @Override
     public void channelInviteUser(final String channelID, final String account, final int uid) {
-        mRtmClient.sendMessageToPeer(account, createSignalWithArg(SIG_CHANNEL_INVITE_USER, channelID),
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_USER, channelID),
                 new IStateListener() {
                     @Override
                     public void onStateChanged(int newState) {
@@ -194,7 +195,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
 
     @Override
     public void channelInviteUser2(final String channelID, final String account, final String extra) {
-        mRtmClient.sendMessageToPeer(account, createSignalWithArg(SIG_CHANNEL_INVITE_USER2, channelID),
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_USER2, channelID),
                 new IStateListener() {
                     @Override
                     public void onStateChanged(int newState) {
@@ -215,19 +216,19 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
 
     @Override
     public void channelInviteAccept(String channelID, String account, int uid, String extra) {
-        mRtmClient.sendMessageToPeer(account, createSignalWithArg(SIG_CHANNEL_INVITE_ACCEPT,
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_ACCEPT,
                 channelID), null);
     }
 
     @Override
     public void channelInviteRefuse(String channelID, String account, int uid, String extra) {
-        mRtmClient.sendMessageToPeer(account, createSignalWithArg(SIG_CHANNEL_INVITE_REFUSE,
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_REFUSE,
                 channelID), null);
     }
 
     @Override
     public void channelInviteEnd(String channelID, String account, int uid) {
-        mRtmClient.sendMessageToPeer(account, createSignalWithArg(SIG_CHANNEL_INVITE_END,
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_END,
                 channelID), null);
         synchronized (mLock) {
             if (mCallback != null) {
@@ -271,15 +272,14 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
         }
     }
 
-    private RtmMessage createSignal(String sig) {
+    private RtmMessage createSignal(String sig, String arg) {
         RtmMessage message = RtmMessage.createMessage();
-        message.setText(sig);
-        return message;
-    }
-
-    private RtmMessage createSignalWithArg(String sig, String arg) {
-        RtmMessage message = RtmMessage.createMessage();
-        message.setText(sig + ":" + arg);
+        StringBuilder builder = new StringBuilder(sig);
+        if (arg != null && !arg.isEmpty()) {
+            builder.append(SIG_ARG_DELIMITER);
+            builder.append(arg);
+        }
+        message.setText(builder.toString());
         return message;
     }
 
