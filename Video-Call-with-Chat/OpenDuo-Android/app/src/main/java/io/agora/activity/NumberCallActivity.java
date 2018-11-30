@@ -103,25 +103,6 @@ public class NumberCallActivity extends AppCompatActivity {
         mAgoraAPI.callbackSet(new AgoraAPI.CallBack() {
 
             @Override
-            public void onLogout(final int i) {
-                Log.i(TAG, "onLogout  i = " + i);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-//                        if (i == IAgoraAPI.ECODE_LOGOUT_E_KICKED) { // other login the account
-//                            Toast.makeText(NumberCallActivity.this, "Other login account, you are logout.", Toast.LENGTH_SHORT).show();
-//
-//                        } else if (i == IAgoraAPI.ECODE_LOGOUT_E_NET) { // net
-//                            Toast.makeText(NumberCallActivity.this, "Logout for Network can not be.", Toast.LENGTH_SHORT).show();
-//
-//                        }
-                        finish();
-                    }
-                });
-
-            }
-
-            @Override
             public void onLoginFailed(int i) {
                 Log.i(TAG, "onLoginFailed  i = " + i);
             }
@@ -162,20 +143,6 @@ public class NumberCallActivity extends AppCompatActivity {
             @Override
             public void onInviteFailed(String channelID, String account, int uid, int i1, String s2) {
                 Log.i(TAG, "onInviteFailed  channelID = " + channelID + " account = " + account + " s2: " + s2 + " i1: " + i1);
-            }
-
-            @Override
-            public void onError(final String s, int i, final String s1) {
-                Log.e(TAG, "onError s = " + s + " i = " + i + " s1 = " + s1);
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (s.equals("query_user_status")) {
-                            Toast.makeText(NumberCallActivity.this, s1, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
             }
 
             @Override

@@ -1,7 +1,6 @@
 package io.agora;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import io.agora.rtm.ErrorInfo;
 import io.agora.rtm.IResultCallback;
@@ -11,7 +10,18 @@ import io.agora.rtm.RtmClientListener;
 import io.agora.rtm.RtmMessage;
 import io.agora.rtm.RtmStatusCode;
 
-public class AgoraAPIOnlySignal implements IAgoraAPI, RtmClientListener {
+public class AgoraAPIOnlySignal implements IAgoraAPI {
+
+    /**
+     * signals for calling system use case
+     */
+    private static final String SIGNAL_PREFIX = "SIG_";
+    private static final String SIG_QUERY_USER_STATUS = SIGNAL_PREFIX + "QUERY_USER_STATUS";
+    private static final String SIG_CHANNEL_INVITE_USER = SIGNAL_PREFIX + "CHANNEL_INVITE_USER";
+    private static final String SIG_CHANNEL_INVITE_ACCEPT = SIGNAL_PREFIX + "CHANNEL_INVITE_ACCEPT";
+    private static final String SIG_CHANNEL_INVITE_REFUSE = SIGNAL_PREFIX + "CHANNEL_INVITE_REFUSE";
+    private static final String SIG_CHANNEL_INVITE_END = SIGNAL_PREFIX + "CHANNEL_INVITE_END";
+    private static final String SIG_CHANNEL_INVITE_USER2 = SIGNAL_PREFIX + "CHANNEL_INVITE_USER2";
 
     private static AgoraAPIOnlySignal sInstance = null;
 
@@ -19,11 +29,48 @@ public class AgoraAPIOnlySignal implements IAgoraAPI, RtmClientListener {
     private ICallBack mCallback;
     private Object mLock = new Object();
 
+    private RtmClientListener mRtmClientListener = new RtmClientListener() {
+        @Override
+        public void onConnectionStateChanged(int newState) {
+            synchronized (mLock) {
+                if (mCallback == null) {
+                    return;
+                }
+                switch (newState) {
+                    case RtmStatusCode.ConnectionState.CONNECTION_STATE_DISCONNECTED:
+                        mCallback.onReconnecting(0);
+                        break;
+                    case RtmStatusCode.ConnectionState.CONNECTION_STATE_CONNECTED:
+                        mCallback.onReconnected(0);
+                        break;
+                    case RtmStatusCode.ConnectionState.CONNECTION_STATE_ABORTED:
+                        mCallback.onConnectionAborted();
+                    default:
+                        break;
+                }
+            }
+        }
+
+        @Override
+        public void onMessageReceived(RtmMessage message, String peerId) {
+            if (message == null) {
+                return;
+            }
+            String text = message.getText();
+            if (text == null || text.isEmpty()) {
+                return;
+            }
+            if (text.startsWith(SIGNAL_PREFIX)) {
+                handleSignal(text, peerId);
+            }
+        }
+    };
+
     AgoraAPIOnlySignal() {}
 
     private AgoraAPIOnlySignal(Context context, String appID) {
         try {
-            mRtmClient = RtmClient.createInstance(context, appID, this);
+            mRtmClient = RtmClient.createInstance(context, appID, mRtmClientListener);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -105,7 +152,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI, RtmClientListener {
 
     @Override
     public void queryUserStatus(final String account) {
-        mRtmClient.sendMessageToPeer(account, newCmdMessage(IAgoraAPI.SIG_QUERY_USER_STATUS),
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_QUERY_USER_STATUS),
                 new IStateListener() {
             @Override
             public void onStateChanged(int newState) {
@@ -121,7 +168,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI, RtmClientListener {
 
     @Override
     public void channelInviteUser(final String channelID, final String account, final int uid) {
-        mRtmClient.sendMessageToPeer(account, newCmdMessage(IAgoraAPI.SIG_CHANNEL_INVITE_USER),
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_USER),
                 new IStateListener() {
                     @Override
                     public void onStateChanged(int newState) {
@@ -142,7 +189,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI, RtmClientListener {
 
     @Override
     public void channelInviteUser2(final String channelID, final String account, final String extra) {
-        mRtmClient.sendMessageToPeer(account, newCmdMessage(IAgoraAPI.SIG_CHANNEL_INVITE_USER2),
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_USER2),
                 new IStateListener() {
                     @Override
                     public void onStateChanged(int newState) {
@@ -163,54 +210,21 @@ public class AgoraAPIOnlySignal implements IAgoraAPI, RtmClientListener {
 
     @Override
     public void channelInviteAccept(String channelID, String account, int uid, String extra) {
-        mRtmClient.sendMessageToPeer(account, newCmdMessage(SIG_CHANNEL_INVITE_ACCEPT), null);
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_ACCEPT), null);
     }
 
     @Override
     public void channelInviteRefuse(String channelID, String account, int uid, String extra) {
-        mRtmClient.sendMessageToPeer(account, newCmdMessage(SIG_CHANNEL_INVITE_REFUSE), null);
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_REFUSE), null);
     }
 
     @Override
     public void channelInviteEnd(String channelID, String account, int uid) {
-        mRtmClient.sendMessageToPeer(account, newCmdMessage(SIG_CHANNEL_INVITE_END), null);
+        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_END), null);
         synchronized (mLock) {
             if (mCallback != null) {
                 mCallback.onInviteEndByMyself(channelID, account, uid);
             }
-        }
-    }
-
-    @Override
-    public void onConnectionStateChanged(int newState) {
-        synchronized (mLock) {
-            if (mCallback == null) {
-                return;
-            }
-            switch (newState) {
-                case RtmStatusCode.ConnectionState.CONNECTION_STATE_CONNECTING:
-                    mCallback.onReconnecting(-1);
-                    break;
-                case RtmStatusCode.ConnectionState.CONNECTION_STATE_CONNECTED:
-                    mCallback.onReconnected(0);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    @Override
-    public void onMessageReceived(RtmMessage message, String peerId) {
-        if (message == null) {
-            return;
-        }
-        String text = message.getText();
-        if (TextUtils.isEmpty(text)) {
-            return;
-        }
-        if (text.startsWith(SIGNAL_PREFIX)) {
-            handleSignal(text, peerId);
         }
     }
 
@@ -249,7 +263,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI, RtmClientListener {
         }
     }
 
-    private RtmMessage newCmdMessage(String cmd) {
+    private RtmMessage createSignal(String cmd) {
         RtmMessage message = RtmMessage.createMessage();
         message.setText(cmd);
         return message;

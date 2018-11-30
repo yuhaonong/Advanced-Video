@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     public void onClickLogin(View v) {
         Log.i(TAG, "onClickLogin");
         account = textAccountName.getText().toString().trim();
-        AGApplication.the().getmAgoraAPI().login(appId, account, "", 0, "");
+        AGApplication.the().getmAgoraAPI().login(appId, account, appId, 0, "");
     }
 
     private void setCallback() {

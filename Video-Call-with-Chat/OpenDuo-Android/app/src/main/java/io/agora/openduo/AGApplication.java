@@ -6,8 +6,6 @@ import android.util.Log;
 import io.agora.AgoraAPIOnlySignal;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.RtcEngine;
-import io.agora.rtm.RtmClientListener;
-import io.agora.rtm.RtmMessage;
 
 
 public class AGApplication extends Application {
@@ -61,31 +59,11 @@ public class AGApplication extends Application {
 
     };
 
-    private final RtmClientListener mRtmClientListener = new RtmClientListener() {
-        @Override
-        public void onConnectionStateChanged(int newState) {
-            Log.i(TAG, "onConnectionStateChanged new state:" + newState);
-        }
-
-        @Override
-        public void onMessageReceived(RtmMessage rtmMessage, String s) {
-
-        }
-    };
-
     @Override
     public void onCreate() {
         super.onCreate();
 
         setupAgoraEngine();
-    }
-
-    public RtcEngine getmRtcEngine() {
-        return mRtcEngine;
-    }
-
-    public AgoraAPIOnlySignal getmAgoraAPI() {
-        return m_agoraAPI;
     }
 
     private void setupAgoraEngine() {
@@ -103,6 +81,14 @@ public class AGApplication extends Application {
 
     public void setOnAgoraEngineInterface(OnAgoraEngineInterface onAgoraEngineInterface) {
         this.onAgoraEngineInterface = onAgoraEngineInterface;
+    }
+
+    public RtcEngine getmRtcEngine() {
+        return mRtcEngine;
+    }
+
+    public AgoraAPIOnlySignal getmAgoraAPI() {
+        return m_agoraAPI;
     }
 
     public interface OnAgoraEngineInterface {

@@ -82,5 +82,10 @@ public final class AgoraAPI extends AgoraAPIOnlySignal {
         public void onReconnected(int fd) {
 
         }
+
+        @Override
+        public void onConnectionAborted() {
+
+        }
     }
 }

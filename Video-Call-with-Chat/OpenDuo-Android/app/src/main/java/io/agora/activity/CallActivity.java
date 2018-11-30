@@ -121,8 +121,8 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
                 e.printStackTrace();
             }
 
-            setupLocalVideo(); // Tutorial Step 3
-            joinChannel(); // Tutorial Step 4
+            setupLocalVideo();
+            joinChannel();
         }
     }
 
@@ -134,7 +134,7 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
     }
 
     @Override
-    public void onFirstRemoteVideoDecoded(final int uid, int width, int height, int elapsed) { // Tutorial Step 5
+    public void onFirstRemoteVideoDecoded(final int uid, int width, int height, int elapsed) {
         Log.i(TAG, "onFirstRemoteVideoDecoded  uid:" + uid);
         runOnUiThread(new Runnable() {
             @Override
@@ -149,7 +149,7 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
     }
 
     @Override
-    public void onUserOffline(final int uid, int reason) { // Tutorial Step 7
+    public void onUserOffline(final int uid, int reason) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -159,7 +159,7 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
     }
 
     @Override
-    public void onUserMuteVideo(final int uid, final boolean muted) { // Tutorial Step 10
+    public void onUserMuteVideo(final int uid, final boolean muted) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -168,7 +168,8 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
         });
     }
 
-    private CompoundButton.OnCheckedChangeListener oncheckChangeListerener = new CompoundButton.OnCheckedChangeListener() {
+    private CompoundButton.OnCheckedChangeListener oncheckChangeListerener =
+            new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             mRtcEngine.muteLocalAudioStream(isChecked);
@@ -233,13 +234,6 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                        if (i == IAgoraAPI.ECODE_LOGOUT_E_KICKED) { // other login the account
-//                            Toast.makeText(CallActivity.this, "Other login account ,you are logout.", Toast.LENGTH_SHORT).show();
-//
-//                        } else if (i == IAgoraAPI.ECODE_LOGOUT_E_NET) { // net
-//                            Toast.makeText(CallActivity.this, "Logout for Network can not be.", Toast.LENGTH_SHORT).show();
-//                            finish();
-//                        }
                         Intent intent = new Intent();
                         intent.putExtra("result", "finish");
                         setResult(RESULT_OK, intent);
@@ -259,8 +253,6 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                      "status": 0 // Default
-//                      "status": 1 // Busy
                         mAgoraAPI.channelInviteRefuse(channelID, account, uid, "{\"status\":1}");
 
                     }
@@ -278,7 +270,6 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
                     @Override
                     public void run() {
                         mCallHangupBtn.setVisibility(View.VISIBLE);
-
                         mCallTitle.setText(String.format(Locale.US, "%s is being called ...", mSubscriber));
                     }
                 });
