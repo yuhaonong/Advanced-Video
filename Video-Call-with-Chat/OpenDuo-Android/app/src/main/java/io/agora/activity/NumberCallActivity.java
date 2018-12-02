@@ -103,19 +103,19 @@ public class NumberCallActivity extends AppCompatActivity {
 
             @Override
             public void onLoginFailed(int ecode) {
-                AGApplication.logAndShowToast("onLoginFailed ecode: " + ecode);
+                AGApplication.logAndShowToast("onLoginFailed code:" + ecode);
             }
 
             @Override
             public void onInviteReceived(final String channelID, final String account, int uid,
                                          String extra) { //call out other remote receiver
-                AGApplication.logAndShowToast("callee: onInviteReceived channelID: " + channelID + " account: " + account);
+                AGApplication.logAndShowToast("callee: onInviteReceived channel:" + channelID + " account:" + account);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Intent intent = new Intent(NumberCallActivity.this, CallActivity.class);
                         intent.putExtra("account", mMyAccount);
-                        intent.putExtra("channelName", channelID);
+                        intent.putExtra("channelID", channelID);
                         intent.putExtra("subscriber", account);
                         intent.putExtra("type", Constant.CALL_IN);
                         startActivityForResult(intent, REQUEST_CODE);
@@ -125,13 +125,13 @@ public class NumberCallActivity extends AppCompatActivity {
 
             @Override
             public void onInviteReceivedByPeer(final String channelID, final String account, int uid) {
-                AGApplication.logAndShowToast("caller: onInviteReceivedByPeer channelID: " + channelID + "  account: " + account);
+                AGApplication.logAndShowToast("caller: onInviteReceivedByPeer channel:" + channelID + " account:" + account);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Intent intent = new Intent(NumberCallActivity.this, CallActivity.class);
                         intent.putExtra("account", mMyAccount);
-                        intent.putExtra("channelName", channelID);
+                        intent.putExtra("channelID", channelID);
                         intent.putExtra("subscriber", account);
                         intent.putExtra("type", Constant.CALL_OUT);
                         startActivityForResult(intent, REQUEST_CODE);
@@ -141,18 +141,18 @@ public class NumberCallActivity extends AppCompatActivity {
 
             @Override
             public void onInviteFailed(String channelID, String account, int uid, int ecode, String extra) {
-                AGApplication.logAndShowToast("caller: onInviteFailed channelID: " + channelID + " account: " + account
+                AGApplication.logAndShowToast("caller: onInviteFailed channel:" + channelID + " account:" + account
                         + " extra: " + extra + " ecode: " + ecode);
             }
 
             @Override
             public void onQueryUserStatusResult(final String name, final String status) {
                 boolean isOnline = "1".equals(status);
-                AGApplication.logAndShowToast("caller: onQueryUserStatusResult name: " + name + " status: " + (isOnline ? " online " : " offline"));
+                AGApplication.logAndShowToast("caller: onQueryUserStatusResult name:" + name + " status:" + (isOnline ? " online " : " offline"));
                 if (isOnline) {
                     String channelID = mMyAccount + mSubscriber;
                     mAgoraAPI.channelInviteUser(channelID, mSubscriber, 0);
-                    AGApplication.logAndShowToast("caller: channelInviteUser channelID: " + channelID + " subscriber: " + mSubscriber);
+                    AGApplication.logAndShowToast("caller: channelInviteUser channel:" + channelID + " subscriber:" + mSubscriber);
                 }
             }
 

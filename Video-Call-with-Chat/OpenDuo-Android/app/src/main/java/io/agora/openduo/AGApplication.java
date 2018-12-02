@@ -31,6 +31,7 @@ public class AGApplication extends Application {
     private final IRtcEngineEventHandler mRtcEventHandler = new IRtcEngineEventHandler() {
         @Override
         public void onFirstRemoteVideoDecoded(final int uid, int width, int height, int elapsed) {
+            logAndShowToast("onFirstRemoteVideoDecoded  uid:" + uid);
             if (onAgoraEngineInterface != null) {
                 onAgoraEngineInterface.onFirstRemoteVideoDecoded(uid, width, height, elapsed);
             }
@@ -38,7 +39,7 @@ public class AGApplication extends Application {
 
         @Override
         public void onUserOffline(int uid, int reason) {
-            Log.i(TAG, "onUserOffline uid: " + uid + " reason:" + reason);
+            logAndShowToast("onUserOffline uid: " + uid + " reason:" + reason);
             if (onAgoraEngineInterface != null) {
                 onAgoraEngineInterface.onUserOffline(uid, reason);
             }
@@ -46,6 +47,7 @@ public class AGApplication extends Application {
 
         @Override
         public void onUserMuteVideo(final int uid, final boolean muted) {
+            logAndShowToast("onUserMuteVideo uid: " + uid + " muted: " + muted);
             if (onAgoraEngineInterface != null) {
                 onAgoraEngineInterface.onUserMuteVideo(uid, muted);
             }
@@ -53,8 +55,7 @@ public class AGApplication extends Application {
 
         @Override
         public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
-            super.onJoinChannelSuccess(channel, uid, elapsed);
-            Log.i(TAG, "onJoinChannelSuccess channel:" + channel + " uid:" + uid);
+            logAndShowToast("onJoinChannelSuccess channel:" + channel + " uid:" + uid);
             if (onAgoraEngineInterface != null) {
                 onAgoraEngineInterface.onJoinChannelSuccess(channel, uid, elapsed);
             }
@@ -106,6 +107,7 @@ public class AGApplication extends Application {
     }
 
     public static void logAndShowToast(final String message) {
+        Log.i("AGORA_LOG", message);
         the().mMainHandler.post(new Runnable() {
             @Override
             public void run() {

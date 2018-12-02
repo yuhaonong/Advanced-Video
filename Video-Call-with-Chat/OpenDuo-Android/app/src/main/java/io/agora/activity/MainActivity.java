@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setCallback();
+        setSignalingCallback();
         if (mIsLogin) {
             mAgoraAPI.logout();
             mIsLogin = false;
@@ -74,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
         mIsLogin = true;
     }
 
-    private void setCallback() {
-        Log.i(TAG, "setCallback enter.");
+    private void setSignalingCallback() {
+        Log.i(TAG, "setSignalingCallback enter.");
         mAgoraAPI.callbackSet(new AgoraAPI.CallBack() {
 
             @Override
@@ -93,13 +93,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onLogout(final int ecode) {
-                AGApplication.logAndShowToast("onLogout  ecode: " + ecode);
+                AGApplication.logAndShowToast("onLogout code:" + ecode);
             }
 
             @Override
             public void onLoginFailed(final int ecode) {
                 AGApplication.logAndShowToast(ecode == RtmStatusCode.LoginError.LOGIN_ERR_REJECTED ?
-                                "Login rejected" : "Login error: " + ecode);
+                                "Login rejected" : "Login error:" + ecode);
             }
         });
     }
