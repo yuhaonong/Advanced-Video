@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Locale;
 
@@ -20,8 +19,8 @@ import io.agora.utils.Constant;
 
 /**
  * "*" and "#" is useless
+ *
  */
-
 public class NumberCallActivity extends AppCompatActivity {
     private final String TAG = NumberCallActivity.class.getSimpleName();
 
@@ -32,8 +31,7 @@ public class NumberCallActivity extends AppCompatActivity {
     private String mSubscriber;
     private TextView mCallTitle;
     private EditText mSubscriberPhoneNumberText;
-    private StringBuffer mCallNumberText = new StringBuffer("");
-    private String channelName = "channelid";
+    private StringBuffer mCallNumberText = new StringBuffer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,15 +67,16 @@ public class NumberCallActivity extends AppCompatActivity {
 
             case R.id.call_number_call: // number layout call out button
                 if (!Constant.isFastlyClick()) {
-                    if (mSubscriberPhoneNumberText.getText().toString().equals(mMyAccount)) {
-                        Toast.makeText(this, "could not call yourself", Toast.LENGTH_SHORT).show();
+                    String subscriber = mSubscriberPhoneNumberText.getText().toString();
+                    if (mMyAccount.equals(subscriber)) {
+                        AGApplication.logAndShowToast("could not call yourself");
                     } else {
-                        mSubscriber = mSubscriberPhoneNumberText.getText().toString();
-                        // call out
-                        mAgoraAPI.queryUserStatus(mSubscriberPhoneNumberText.getText().toString());
+                        mSubscriber = subscriber;
+                        mAgoraAPI.queryUserStatus(mSubscriber);
+                        AGApplication.logAndShowToast("caller: queryUserStatus " + mSubscriber);
                     }
                 } else {
-                    Toast.makeText(this, "fast click", Toast.LENGTH_SHORT).show();
+                    AGApplication.logAndShowToast("fast click");
                 }
                 Log.i(TAG, "call number call init");
                 break;
@@ -103,13 +102,14 @@ public class NumberCallActivity extends AppCompatActivity {
         mAgoraAPI.callbackSet(new AgoraAPI.CallBack() {
 
             @Override
-            public void onLoginFailed(int i) {
-                Log.i(TAG, "onLoginFailed  i = " + i);
+            public void onLoginFailed(int ecode) {
+                AGApplication.logAndShowToast("onLoginFailed ecode: " + ecode);
             }
 
             @Override
-            public void onInviteReceived(final String channelID, final String account, int uid, String s2) { //call out other remote receiver
-                Log.i(TAG, "onInviteReceived  channelID = " + channelID + " account = " + account);
+            public void onInviteReceived(final String channelID, final String account, int uid,
+                                         String extra) { //call out other remote receiver
+                AGApplication.logAndShowToast("callee: onInviteReceived channelID: " + channelID + " account: " + account);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -124,8 +124,8 @@ public class NumberCallActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onInviteReceivedByPeer(final String channelID, final String account, int uid) {//call out other local receiver
-                Log.i(TAG, "onInviteReceivedByPeer  channelID = " + channelID + "  account = " + account);
+            public void onInviteReceivedByPeer(final String channelID, final String account, int uid) {
+                AGApplication.logAndShowToast("caller: onInviteReceivedByPeer channelID: " + channelID + "  account: " + account);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -137,28 +137,23 @@ public class NumberCallActivity extends AppCompatActivity {
                         startActivityForResult(intent, REQUEST_CODE);
                     }
                 });
-
             }
 
             @Override
-            public void onInviteFailed(String channelID, String account, int uid, int i1, String s2) {
-                Log.i(TAG, "onInviteFailed  channelID = " + channelID + " account = " + account + " s2: " + s2 + " i1: " + i1);
+            public void onInviteFailed(String channelID, String account, int uid, int ecode, String extra) {
+                AGApplication.logAndShowToast("caller: onInviteFailed channelID: " + channelID + " account: " + account
+                        + " extra: " + extra + " ecode: " + ecode);
             }
 
             @Override
             public void onQueryUserStatusResult(final String name, final String status) {
-                Log.i(TAG, "onQueryUserStatusResult name = " + name + " status = " + status);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (status.equals("1")) {
-                            channelName = mMyAccount + mSubscriber;
-                            mAgoraAPI.channelInviteUser(channelName, mSubscriberPhoneNumberText.getText().toString(), 0);
-                        } else if (status.equals("0")) {
-                            Toast.makeText(NumberCallActivity.this, name + " is offline ", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+                boolean isOnline = "1".equals(status);
+                AGApplication.logAndShowToast("caller: onQueryUserStatusResult name: " + name + " status: " + (isOnline ? " online " : " offline"));
+                if (isOnline) {
+                    String channelID = mMyAccount + mSubscriber;
+                    mAgoraAPI.channelInviteUser(channelID, mSubscriber, 0);
+                    AGApplication.logAndShowToast("caller: channelInviteUser channelID: " + channelID + " subscriber: " + mSubscriber);
+                }
             }
 
         });

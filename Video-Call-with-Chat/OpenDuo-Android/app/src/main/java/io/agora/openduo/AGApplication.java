@@ -1,7 +1,9 @@
 package io.agora.openduo;
 
 import android.app.Application;
+import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import io.agora.AgoraAPIOnlySignal;
 import io.agora.rtc.IRtcEngineEventHandler;
@@ -12,8 +14,9 @@ public class AGApplication extends Application {
     private final String TAG = AGApplication.class.getSimpleName();
 
     private static AGApplication mInstance;
-    private AgoraAPIOnlySignal m_agoraAPI;
+    private AgoraAPIOnlySignal mAgoraAPI;
     private RtcEngine mRtcEngine;
+    private Handler mMainHandler;
 
     public static AGApplication the() {
         return mInstance;
@@ -63,6 +66,7 @@ public class AGApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+        mMainHandler = new Handler();
         setupAgoraEngine();
     }
 
@@ -70,7 +74,7 @@ public class AGApplication extends Application {
         String appID = getString(R.string.agora_app_id);
 
         try {
-            m_agoraAPI = AgoraAPIOnlySignal.getInstance(this, appID);
+            mAgoraAPI = AgoraAPIOnlySignal.getInstance(this, appID);
             mRtcEngine = RtcEngine.create(getBaseContext(), appID, mRtcEventHandler);
             Log.i(TAG, "setupAgoraEngine mRtcEngine :" + mRtcEngine);
         } catch (Exception e) {
@@ -88,7 +92,7 @@ public class AGApplication extends Application {
     }
 
     public AgoraAPIOnlySignal getmAgoraAPI() {
-        return m_agoraAPI;
+        return mAgoraAPI;
     }
 
     public interface OnAgoraEngineInterface {
@@ -99,5 +103,14 @@ public class AGApplication extends Application {
         void onUserMuteVideo(final int uid, final boolean muted);
 
         void onJoinChannelSuccess(String channel, int uid, int elapsed);
+    }
+
+    public static void logAndShowToast(final String message) {
+        the().mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(mInstance, message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

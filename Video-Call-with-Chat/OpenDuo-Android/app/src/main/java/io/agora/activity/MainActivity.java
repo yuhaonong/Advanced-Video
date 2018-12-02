@@ -8,9 +8,9 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import io.agora.AgoraAPI;
+import io.agora.AgoraAPIOnlySignal;
 import io.agora.openduo.AGApplication;
 import io.agora.openduo.R;
 import io.agora.rtc.RtcEngine;
@@ -23,20 +23,20 @@ import io.agora.rtm.RtmStatusCode;
 public class MainActivity extends AppCompatActivity {
     private final String TAG = MainActivity.class.getSimpleName();
 
-    private EditText textAccountName;
-    private String appId;
-    private int uid;
-    private String account;
-    private boolean isLogin = false;
+    private EditText mTextAccountName;
+    private String mAppId;
+    private String mAccount;
+    private boolean mIsLogin = false;
+    private AgoraAPIOnlySignal mAgoraAPI;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        appId = getString(R.string.agora_app_id);
-        textAccountName = (EditText) findViewById(R.id.account_name);
-        textAccountName.addTextChangedListener(new TextWatcher() {
+        mAppId = getString(R.string.agora_app_id);
+        mTextAccountName = (EditText) findViewById(R.id.account_name);
+        mTextAccountName.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -53,68 +53,53 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.button_login).setEnabled(!isEmpty);
             }
         });
+        mAgoraAPI = AGApplication.the().getmAgoraAPI();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setCallback();
-        if (isLogin) {
-            AGApplication.the().getmAgoraAPI().logout();
+        if (mIsLogin) {
+            mAgoraAPI.logout();
+            mIsLogin = false;
         }
     }
 
     // login signaling
     public void onClickLogin(View v) {
         Log.i(TAG, "onClickLogin");
-        account = textAccountName.getText().toString().trim();
-        AGApplication.the().getmAgoraAPI().login(appId, account, "", 0, "");
+        mAccount = mTextAccountName.getText().toString().trim();
+        mAgoraAPI.login(mAppId, mAccount, "", 0, "");
+        mIsLogin = true;
     }
 
     private void setCallback() {
         Log.i(TAG, "setCallback enter.");
-        AGApplication.the().getmAgoraAPI().callbackSet(new AgoraAPI.CallBack() {
+        mAgoraAPI.callbackSet(new AgoraAPI.CallBack() {
 
             @Override
             public void onLoginSuccess() {
-                Log.i(TAG, "onLoginSuccess");
+                AGApplication.logAndShowToast("onLoginSuccess");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        isLogin = true;
                         Intent intent = new Intent(MainActivity.this, NumberCallActivity.class);
-                        intent.putExtra("uid", uid);
-                        intent.putExtra("account", account);
+                        intent.putExtra("account", mAccount);
                         startActivity(intent);
                     }
                 });
             }
 
             @Override
-            public void onLogout(int i) {
-                Log.i(TAG, "onLogout  i = " + i);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "onLogout", Toast.LENGTH_SHORT).show();
-                        isLogin = false;
-                    }
-                });
+            public void onLogout(final int ecode) {
+                AGApplication.logAndShowToast("onLogout  ecode: " + ecode);
             }
 
             @Override
-            public void onLoginFailed(final int i) {
-                Log.i(TAG, "onLoginFailed " + i);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (i == RtmStatusCode.LoginError.LOGIN_ERR_REJECTED) {
-                            Toast.makeText(MainActivity.this, "Login rejected", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(MainActivity.this, "Login error: " + i, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+            public void onLoginFailed(final int ecode) {
+                AGApplication.logAndShowToast(ecode == RtmStatusCode.LoginError.LOGIN_ERR_REJECTED ?
+                                "Login rejected" : "Login error: " + ecode);
             }
         });
     }
@@ -123,9 +108,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy");
-        if (isLogin) {
-            AGApplication.the().getmAgoraAPI().logout();
-            isLogin = false;
+        if (mIsLogin) {
+            mAgoraAPI.logout();
+            mIsLogin = false;
         }
         RtcEngine.destroy();
     }

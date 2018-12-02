@@ -33,8 +33,8 @@ import io.agora.utils.Constant;
 
 /**
  * Created by beryl on 2017/11/6.
+ *
  */
-
 public class CallActivity extends AppCompatActivity implements AGApplication.OnAgoraEngineInterface {
     private final String TAG = CallActivity.class.getSimpleName();
 
