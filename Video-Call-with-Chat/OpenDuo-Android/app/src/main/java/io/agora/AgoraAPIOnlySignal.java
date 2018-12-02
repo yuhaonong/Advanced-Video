@@ -1,6 +1,7 @@
 package io.agora;
 
 import android.content.Context;
+import android.util.Log;
 
 import io.agora.rtm.ErrorInfo;
 import io.agora.rtm.IResultCallback;
@@ -11,6 +12,7 @@ import io.agora.rtm.RtmMessage;
 import io.agora.rtm.RtmStatusCode;
 
 public class AgoraAPIOnlySignal implements IAgoraAPI {
+    private static final String TAG = "AGORA_LOG";
 
     /**
      * signals for calling system use case
@@ -34,6 +36,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
     private RtmClientListener mRtmClientListener = new RtmClientListener() {
         @Override
         public void onConnectionStateChanged(int newState) {
+            // Log.i(TAG, "onConnectionStateChanged: " + newState);
             synchronized (mLock) {
                 if (mCallback == null) {
                     return;
@@ -62,6 +65,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
             if (text == null || text.isEmpty()) {
                 return;
             }
+            // Log.i(TAG, "onMessageReceived: " + text + " from: " + peerId);
             if (text.startsWith(SIGNAL_PREFIX)) {
                 String[] array = text.split(SIG_ARG_DELIMITER);
                 String signal = array[0];
@@ -158,8 +162,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
 
     @Override
     public void queryUserStatus(final String account) {
-        mRtmClient.sendMessageToPeer(account, createSignal(SIG_QUERY_USER_STATUS, null),
-                new IStateListener() {
+        sendSignal(account, SIG_QUERY_USER_STATUS, null, new IStateListener() {
             @Override
             public void onStateChanged(int newState) {
                 String result = (newState == RtmStatusCode.PeerMessageState.PEER_MESSAGE_RECEIVED_BY_PEER) ? "1" : "0";
@@ -174,62 +177,57 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
 
     @Override
     public void channelInviteUser(final String channelID, final String account, final int uid) {
-        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_USER, channelID),
-                new IStateListener() {
-                    @Override
-                    public void onStateChanged(int newState) {
-                        synchronized (mLock) {
-                            if (mCallback == null) {
-                                return;
-                            }
-                            if (newState == RtmStatusCode.PeerMessageState.PEER_MESSAGE_RECEIVED_BY_PEER) {
-                                mCallback.onInviteReceivedByPeer(channelID, account, uid);
-                            } else {
-                                // TODO: 2018/11/29 error code mapping
-                                mCallback.onInviteFailed(channelID, account, uid, newState, "");
-                            }
-                        }
+        sendSignal(account, SIG_CHANNEL_INVITE_USER, channelID, new IStateListener() {
+            @Override
+            public void onStateChanged(int newState) {
+                synchronized (mLock) {
+                    if (mCallback == null) {
+                        return;
                     }
+                    if (newState == RtmStatusCode.PeerMessageState.PEER_MESSAGE_RECEIVED_BY_PEER) {
+                        mCallback.onInviteReceivedByPeer(channelID, account, uid);
+                    } else {
+                        // TODO: 2018/11/29 error code mapping
+                        mCallback.onInviteFailed(channelID, account, uid, newState, "");
+                    }
+                }
+            }
         });
     }
 
     @Override
     public void channelInviteUser2(final String channelID, final String account, final String extra) {
-        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_USER2, channelID),
-                new IStateListener() {
-                    @Override
-                    public void onStateChanged(int newState) {
-                        synchronized (mLock) {
-                            if (mCallback == null) {
-                                return;
-                            }
-                            if (newState == RtmStatusCode.PeerMessageState.PEER_MESSAGE_RECEIVED_BY_PEER) {
-                                mCallback.onInviteReceivedByPeer(channelID, account, 0);
-                            } else {
-                                // TODO: 2018/11/29 error code mapping
-                                mCallback.onInviteFailed(channelID, account, 0, newState, "");
-                            }
-                        }
+        sendSignal(account, SIG_CHANNEL_INVITE_USER2, channelID, new IStateListener() {
+            @Override
+            public void onStateChanged(int newState) {
+                synchronized (mLock) {
+                    if (mCallback == null) {
+                        return;
                     }
-                });
+                    if (newState == RtmStatusCode.PeerMessageState.PEER_MESSAGE_RECEIVED_BY_PEER) {
+                        mCallback.onInviteReceivedByPeer(channelID, account, 0);
+                    } else {
+                        // TODO: 2018/11/29 error code mapping
+                        mCallback.onInviteFailed(channelID, account, 0, newState, "");
+                    }
+                }
+            }
+        });
     }
 
     @Override
     public void channelInviteAccept(String channelID, String account, int uid, String extra) {
-        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_ACCEPT,
-                channelID), null);
+        sendSignal(account, SIG_CHANNEL_INVITE_ACCEPT, channelID, null);
     }
 
     @Override
     public void channelInviteRefuse(String channelID, String account, int uid, String extra) {
-        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_REFUSE,
-                channelID), null);
+        sendSignal(account, SIG_CHANNEL_INVITE_REFUSE, channelID, null);
     }
 
     @Override
     public void channelInviteEnd(String channelID, String account, int uid) {
-        mRtmClient.sendMessageToPeer(account, createSignal(SIG_CHANNEL_INVITE_END,
-                channelID), null);
+        sendSignal(account, SIG_CHANNEL_INVITE_END, channelID, null);
         synchronized (mLock) {
             if (mCallback != null) {
                 mCallback.onInviteEndByMyself(channelID, account, uid);
@@ -237,8 +235,24 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
         }
     }
 
+    private void sendSignal(String peerId, String signal, String arg1, IStateListener listener) {
+        if (mRtmClient == null) {
+            return;
+        }
+
+        RtmMessage message = RtmMessage.createMessage();
+        StringBuilder builder = new StringBuilder(signal);
+        if (arg1 != null && !arg1.isEmpty()) {
+            builder.append(SIG_ARG_DELIMITER);
+            builder.append(arg1);
+        }
+        message.setText(builder.toString());
+        // Log.i(TAG, "sendSignal: " + builder.toString());
+        mRtmClient.sendMessageToPeer(peerId, message, listener);
+    }
+
     private void handleSignal(String peerId, String signal, String arg1) {
-        // TODO: 2018/11/29 channelId and extra
+        // Log.i(TAG, "handleSignal: " + signal + ":" + arg1);
         synchronized (mLock) {
             if (mCallback == null) {
                 return;
@@ -271,16 +285,4 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
             }
         }
     }
-
-    private RtmMessage createSignal(String sig, String arg) {
-        RtmMessage message = RtmMessage.createMessage();
-        StringBuilder builder = new StringBuilder(sig);
-        if (arg != null && !arg.isEmpty()) {
-            builder.append(SIG_ARG_DELIMITER);
-            builder.append(arg);
-        }
-        message.setText(builder.toString());
-        return message;
-    }
-
 }

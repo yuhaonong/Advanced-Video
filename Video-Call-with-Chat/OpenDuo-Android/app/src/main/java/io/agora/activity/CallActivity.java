@@ -137,7 +137,7 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
             case R.id.call_in_pickup:
                 mIsCallInRefuse = false;
                 joinChannel(); // Tutorial Step 4
-                AGApplication.logAndShowToast("callee: channelInviteAccept channelID:" + channelID + " mSubscriber:" + mSubscriber);
+                AGApplication.logAndShowToast("callee: channelInviteAccept channel:" + channelID + " mSubscriber:" + mSubscriber);
                 mAgoraAPI.channelInviteAccept(channelID, mSubscriber, 0, null);
                 mLayoutCallIn.setVisibility(View.GONE);
                 mCallHangupBtn.setVisibility(View.VISIBLE);

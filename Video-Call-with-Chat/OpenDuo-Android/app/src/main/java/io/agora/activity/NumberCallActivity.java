@@ -148,7 +148,7 @@ public class NumberCallActivity extends AppCompatActivity {
             @Override
             public void onQueryUserStatusResult(final String name, final String status) {
                 boolean isOnline = "1".equals(status);
-                AGApplication.logAndShowToast("caller: onQueryUserStatusResult name:" + name + " status:" + (isOnline ? " online " : " offline"));
+                AGApplication.logAndShowToast("caller: onQueryUserStatusResult name:" + name + " status:" + (isOnline ? "online" : "offline"));
                 if (isOnline) {
                     String channelID = mMyAccount + mSubscriber;
                     mAgoraAPI.channelInviteUser(channelID, mSubscriber, 0);
