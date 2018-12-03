@@ -204,8 +204,8 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
         mAgoraAPI.callbackSet(new AgoraAPI.CallBack() {
 
             @Override
-            public void onLogout(final int ecode) {
-                AGApplication.logAndShowToast("onLogout code:" + ecode);
+            public void onConnectionAborted() {
+                AGApplication.logAndShowToast("onConnectionAborted!");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -215,7 +215,6 @@ public class CallActivity extends AppCompatActivity implements AGApplication.OnA
                         finish();
                     }
                 });
-
             }
 
             @Override

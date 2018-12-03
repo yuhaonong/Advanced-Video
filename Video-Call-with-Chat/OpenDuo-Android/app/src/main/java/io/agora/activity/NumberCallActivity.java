@@ -107,6 +107,17 @@ public class NumberCallActivity extends AppCompatActivity {
             }
 
             @Override
+            public void onConnectionAborted() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                        // logout() will be called on MainActivity resume
+                    }
+                });
+            }
+
+            @Override
             public void onInviteReceived(final String channelID, final String account, int uid,
                                          String extra) { //call out other remote receiver
                 AGApplication.logAndShowToast("callee: onInviteReceived channel:" + channelID + " account:" + account);

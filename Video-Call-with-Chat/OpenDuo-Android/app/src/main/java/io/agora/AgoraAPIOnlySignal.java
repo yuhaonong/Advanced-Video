@@ -36,7 +36,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
     private RtmClientListener mRtmClientListener = new RtmClientListener() {
         @Override
         public void onConnectionStateChanged(int newState) {
-            // Log.i(TAG, "onConnectionStateChanged: " + newState);
+//            Log.i(TAG, "onConnectionStateChanged: " + newState);
             synchronized (mLock) {
                 if (mCallback == null) {
                     return;
@@ -65,7 +65,7 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
             if (text == null || text.isEmpty()) {
                 return;
             }
-            // Log.i(TAG, "onMessageReceived: " + text + " from: " + peerId);
+//            Log.i(TAG, "onMessageReceived: " + text + " from: " + peerId);
             if (text.startsWith(SIGNAL_PREFIX)) {
                 String[] array = text.split(SIG_ARG_DELIMITER);
                 String signal = array[0];
@@ -247,12 +247,12 @@ public class AgoraAPIOnlySignal implements IAgoraAPI {
             builder.append(arg1);
         }
         message.setText(builder.toString());
-        // Log.i(TAG, "sendSignal: " + builder.toString());
+//        Log.i(TAG, "sendSignal: " + builder.toString());
         mRtmClient.sendMessageToPeer(peerId, message, listener);
     }
 
     private void handleSignal(String peerId, String signal, String arg1) {
-        // Log.i(TAG, "handleSignal: " + signal + ":" + arg1);
+//        Log.i(TAG, "handleSignal: " + signal + ":" + arg1);
         synchronized (mLock) {
             if (mCallback == null) {
                 return;
